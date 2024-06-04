@@ -26,7 +26,7 @@ connection.connect((err) => {
 const createTodoTableQuery = `
   CREATE TABLE IF NOT EXISTS todos (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    text VARCHAR2(12) NOT NULL 
+    text VARCHAR(12) NOT NULL 
   )
 `; //text << 최대 255자에서 12자로 줄임.
 
@@ -57,16 +57,11 @@ app.get('/api/todos', (req, res) => {
 app.post('/api/todos', (req, res) => {
   const { text } = req.body;
   connection.query('INSERT INTO todos (text) VALUES (?)', [text], (error, results, fields) => {
-    if(text.length > 12){
-      alert('허용된 최대 글자수를 넘겼습니다.');
-      return;
-    }
-    else if (error) {
+    if (error) {
       console.error('Error creating todo: ', error);
       res.status(500).json({ error: 'Internal server error' });
       return;
     }
-    alert('데이터 값 ')
     res.status(201).json({ id: results.insertId, text: text });
   });
 });
@@ -75,10 +70,7 @@ app.put('/api/todos/:id/text', (req, res) => {
   const { id } = req.params;
   const { text } = req.body;
   connection.query('UPDATE todos SET text = ? WHERE id = ?', [text, id], (error, results, fields) => {
-    if (text.length > 12){
-      alert('수정된 텍스트 길이가 최대치를 넘겼습니다.')
-    }
-    else if (error) {
+    if (error) {
       console.error('Error updating todo text: ', error);
       res.status(500).json({ error: 'Internal server error' });
       return;
@@ -95,7 +87,6 @@ app.delete('/api/todos/:id', (req, res) => {
       res.status(500).json({ error: 'Internal server error' });
       return;
     }
-    alert(text + '를 삭제하셨습니다.')
     res.status(200).json({ message: 'Todo deleted successfully' });
   });
 });
