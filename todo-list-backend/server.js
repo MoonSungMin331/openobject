@@ -26,9 +26,9 @@ connection.connect((err) => {
 const createTodoTableQuery = `
   CREATE TABLE IF NOT EXISTS todos (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    text VARCHAR(12) NOT NULL 
+    text VARCHAR(255) NOT NULL 
   )
-`; //text << 최대 255자에서 12자로 줄임.
+`;
 
 connection.query(createTodoTableQuery, (err, results, fields) => {
   if (err) {
@@ -56,11 +56,14 @@ app.get('/api/todos', (req, res) => {
 
 app.post('/api/todos', (req, res) => {
   const { text } = req.body;
+  if(text.length < 3){
+    console.error('최소 입력 길이는 3글자 입니다.');
+    return res.status(400).json({error: '최소 입력 길이는 3글자 입니다'});
+  }
   connection.query('INSERT INTO todos (text) VALUES (?)', [text], (error, results, fields) => {
     if (error) {
-      console.error('Error creating todo: ', error);
-      res.status(500).json({ error: 'Internal server error' });
-      return;
+      console.error('Error inserting todo text: ', error);
+      return res.status(500).json({ error: 'Internal server error' });
     }
     res.status(201).json({ id: results.insertId, text: text });
   });
@@ -69,13 +72,16 @@ app.post('/api/todos', (req, res) => {
 app.put('/api/todos/:id/text', (req, res) => {
   const { id } = req.params;
   const { text } = req.body;
+  if(text.length < 3){
+    console.error('수정된 텍스트가 3글자 이하입니다.');
+    return res.status(400).json({error: '수정된 텍스트가 3글자 이하입니다.'});
+  }
   connection.query('UPDATE todos SET text = ? WHERE id = ?', [text, id], (error, results, fields) => {
     if (error) {
       console.error('Error updating todo text: ', error);
-      res.status(500).json({ error: 'Internal server error' });
-      return;
+      return res.status(500).json({ error: 'Internal server error' });
     }
-    res.status(200).json({ message: 'Todo text updated successfully' });
+    res.status(200).json({ message: '텍스트를 수정했습니다.' });
   });
 });
 

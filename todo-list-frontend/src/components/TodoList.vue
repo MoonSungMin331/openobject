@@ -1,12 +1,12 @@
 <template>
   <div class="todo-list">
     <h1>Todo List</h1>
-    <input v-model="newTodo" @keyup.enter="addTodo" placeholder="Add a new todo" />
+    <input v-model="newTodo" @keyup.enter="addTodo" placeholder="오늘의 할일" />
     <ul>
       <li v-for="todo in todos" :key="todo.id">
         <input type="checkbox" :checked="todo.isEditing" @change="toggleEditing(todo)" />
         <span v-if="!todo.isEditing">{{ todo.text }}</span>
-        <input v-else v-model="todo.editText" @keyup.enter="saveTodoText(todo)" @blur="saveTodoText(todo)" />
+        <input v-else v-model="todo.editText" @keyup.enter="saveTodoText(todo)" />
         <button @click="deleteTodo(todo.id)">Delete</button>
       </li>
     </ul>
@@ -42,6 +42,7 @@ export default {
         this.todos.push({ ...response.data, isEditing: false, editText: response.data.text });
         this.newTodo = '';
       } catch (error) {
+        alert('최소 글자 길이는 3글자입니다.');
         console.error('Error adding todo:', error);
       }
     },
@@ -59,6 +60,7 @@ export default {
           await axios.put(`http://localhost:3000/api/todos/${todo.id}/text`, { text: todo.editText });
           todo.text = todo.editText;
         } catch (error) {
+          alert('수정된 텍스트 길이가 3글자 이하입니다.');
           console.error('Error updating todo text:', error);
         }
       }
