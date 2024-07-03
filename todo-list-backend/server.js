@@ -26,7 +26,8 @@ connection.connect((err) => {
 const createTodoTableQuery = `
   CREATE TABLE IF NOT EXISTS todos (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    text VARCHAR(255) NOT NULL 
+    text VARCHAR(255) NOT NULL,
+    completed BOOLEAN DEFAULT false
   )
 `;
 
@@ -56,32 +57,44 @@ app.get('/api/todos', (req, res) => {
 
 app.post('/api/todos', (req, res) => {
   const { text } = req.body;
-  if(text.length < 3){
-    console.error('최소 입력 길이는 3글자 입니다.');
-    return res.status(400).json({error: '최소 입력 길이는 3글자 입니다'});
+  const trimmedText = text.trim();
+  if (trimmedText.length < 3) {
+    return res.status(400).json({ error: '최소 글자 길이는 3글자입니다.' });
   }
-  connection.query('INSERT INTO todos (text) VALUES (?)', [text], (error, results, fields) => {
+  connection.query('INSERT INTO todos (text) VALUES (?)', [trimmedText], (error, results, fields) => {
     if (error) {
       console.error('Error inserting todo text: ', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
-    res.status(201).json({ id: results.insertId, text: text });
+    res.status(201).json({ id: results.insertId, text: trimmedText });
   });
 });
 
 app.put('/api/todos/:id/text', (req, res) => {
   const { id } = req.params;
   const { text } = req.body;
-  if(text.length < 3){
-    console.error('수정된 텍스트가 3글자 이하입니다.');
-    return res.status(400).json({error: '수정된 텍스트가 3글자 이하입니다.'});
+  const trimmedText = text.trim();
+  if (trimmedText.length < 3) {
+    return res.status(400).json({ error: '수정된 텍스트 길이가 3글자 이하입니다.' });
   }
-  connection.query('UPDATE todos SET text = ? WHERE id = ?', [text, id], (error, results, fields) => {
+  connection.query('UPDATE todos SET text = ? WHERE id = ?', [trimmedText, id], (error, results, fields) => {
     if (error) {
       console.error('Error updating todo text: ', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
     res.status(200).json({ message: '텍스트를 수정했습니다.' });
+  });
+});
+
+app.put('/api/todos/:id/completed', (req, res) => {
+  const { id } = req.params;
+  const { completed } = req.body;
+  connection.query('UPDATE todos SET completed = ? WHERE id = ?', [completed, id], (error, results, fields) => {
+    if (error) {
+      console.error('Error updating todo completed status: ', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.status(200).json({ message: '완료 상태가 수정되었습니다.' });
   });
 });
 
